@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Shammah Wonders Safari - Quotation Calculator</title>
+<style>
+  :root {
+    --brown: #3d1f00;
+    --brown2: #5c3100;
+    --gold: #c8842a;
+    --lgold: #f5d08a;
+    --tan: #fdf5e6;
+    --alt: #fff8ee;
+    --input-bg: #fffef5;
+    --green: #1e5c0e;
+    --greenl: #eaf5e4;
+    --blue: #0b3c6e;
+    --bluel: #e4eef8;
+    --orange: #7a3b00;
+    --orangel: #fff3e0;
+    --purple: #4a1a5c;
+    --purplel: #f5eef8;
+    --red: #6e0b0b;
+    --redl: #fff0ee;
+    --shadow: 0 2px 12px rgba(0,0,0,0.12);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Arial', sans-serif; background: #f0e8d8; min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #3d1f00 0%, #5c3100 60%, #3d1f00 100%);
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 3px 16px rgba(0,0,0,0.35);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .logo-img { height: 52px; object-fit: contain; background: white; border-radius: 6px; padding: 4px 8px; }
+  .logo-text { color: var(--lgold); font-size: 11px; letter-spacing: 0.08em; line-height: 1.6; }
+  .logo-text strong { display: block; font-size: 15px; letter-spacing: 0.12em; }
+  .total-badge {
+    background: var(--gold); color: white; border-radius: 8px;
+    padding: 8px 14px; text-align: right; min-width: 120px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .total-badge .tb-label { font-size: 9px; letter-spacing: 0.1em; opacity: 0.85; }
+  .total-badge .tb-val { font-size: 17px; font-weight: bold; }
+
+  /* MAIN */
+  .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+  /* SECTION */
+  .section { margin-bottom: 18px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .sec-hdr {
+    padding: 12px 16px; font-size: 13px; font-weight: bold;
+    letter-spacing: 0.06em; color: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    user-select: none;
+  }
+  .sec-hdr .chevron { font-size: 16px; transition: transform 0.25s; }
+  .sec-hdr.collapsed .chevron { transform: rotate(-90deg); }
+  .sec-body { background: white; padding: 14px; display: block; }
+  .sec-body.hidden { display: none; }
+
+  /* FORM FIELDS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:500px){ .form-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-size: 10px; font-weight: bold; color: #666; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #ddd; border-radius: 6px;
+    font-size: 14px; background: var(--input-bg); color: #1a1a1a; outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+  .field.full { grid-column: 1 / -1; }
+
+  /* PAX COUNTER */
+  .pax-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:400px){ .pax-grid { grid-template-columns: 1fr; } }
+  .pax-box { background: var(--greenl); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .pax-box .plabel { font-size: 12px; color: var(--green); font-weight: bold; flex: 1; }
+  .pax-box .plabel span { display: block; font-size: 10px; font-weight: normal; color: #666; }
+  .pax-ctrl { display: flex; align-items: center; gap: 6px; }
+  .pax-btn { width: 30px; height: 30px; border: 2px solid var(--green); border-radius: 6px; background: white; color: var(--green); font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .pax-btn:active { background: var(--green); color: white; }
+  .pax-num { width: 36px; text-align: center; font-size: 16px; font-weight: bold; color: var(--brown); border: none; background: transparent; }
+  .pax-total { background: var(--green); color: white; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; }
+
+  /* TABLES — park, accomm, food, etc */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 540px; }
+  th { background: var(--brown2); color: white; padding: 8px 8px; font-size: 10px; letter-spacing: 0.06em; text-align: center; white-space: nowrap; }
+  td { padding: 7px 7px; vertical-align: middle; border-bottom: 1px solid #f0e8d8; }
+  tr:nth-child(even) td { background: #fdfaf5; }
+  td input { width: 100%; padding: 5px 7px; border: 1.5px solid #ddd; border-radius: 5px; font-size: 12px; background: var(--input-bg); color: #000; text-align: right; }
+  td input.name-input { text-align: left; }
+  td input:focus { border-color: var(--gold); outline: none; }
+  td.total-cell { font-weight: bold; color: var(--brown); text-align: right; white-space: nowrap; font-size: 13px; }
+  .section-total-row { background: var(--brown2) !important; }
+  .section-total-row td { color: white; font-weight: bold; font-size: 13px; padding: 10px 8px; border: none; }
+  .add-row-btn {
+    margin-top: 10px; padding: 7px 16px; background: transparent;
+    border: 1.5px dashed var(--gold); color: var(--gold); border-radius: 6px;
+    font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* SUMMARY */
+  .summary-box { background: var(--tan); border-radius: 8px; padding: 14px; }
+  .sum-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e8d8c0; }
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row .sl { font-size: 13px; color: #555; }
+  .sum-row .sv { font-size: 14px; font-weight: bold; color: var(--brown); }
+  .sum-row.grand .sl { font-size: 15px; font-weight: bold; color: var(--brown2); }
+  .sum-row.grand .sv { font-size: 20px; color: var(--brown2); }
+  .comm-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e8d8c0; flex-wrap: wrap; }
+  .comm-row .sl { font-size: 13px; color: #555; white-space: nowrap; }
+  .comm-input { width: 70px; padding: 5px 8px; border: 1.5px solid var(--gold); border-radius: 5px; font-size: 14px; text-align: center; background: #fffff0; }
+  .comm-row .sv { font-size: 14px; font-weight: bold; color: var(--brown); margin-left: auto; }
+  .pp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .pp-card { background: var(--greenl); border-radius: 8px; padding: 12px; text-align: center; }
+  .pp-card .ppl { font-size: 10px; color: var(--green); font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .pp-card .ppv { font-size: 18px; font-weight: bold; color: var(--brown); }
+
+  /* QUOTE PREVIEW */
+  .quote-preview { background: white; border: 1.5px solid var(--gold); border-radius: 10px; padding: 20px; font-size: 13px; line-height: 1.8; color: #222; }
+  .quote-preview .qdate { color: #888; font-size: 11px; text-align: right; margin-bottom: 12px; }
+  .quote-preview .qdear { font-size: 16px; font-weight: bold; color: var(--brown2); margin-bottom: 14px; }
+  .quote-preview .qguests { background: var(--bluel); border-left: 3px solid var(--blue); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 12px 0; font-weight: bold; color: var(--blue); font-size: 12px; }
+  .quote-preview .qcosts { margin: 14px 0; }
+  .quote-preview .qcost-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0e8d8; font-size: 13px; }
+  .quote-preview .qcost-row.qtotal { font-weight: bold; font-size: 16px; color: var(--brown2); border-top: 2px solid var(--gold); border-bottom: none; padding-top: 10px; margin-top: 4px; }
+  .quote-preview .qfooter { margin-top: 14px; font-style: italic; color: #666; font-size: 12px; }
+  .quote-preview .qsig { margin-top: 16px; color: var(--gold); font-weight: bold; }
+
+  /* COLORS per section */
+  .s-client     .sec-hdr { background: var(--brown2); }
+  .s-pax        .sec-hdr { background: var(--green); }
+  .s-park       .sec-hdr { background: var(--blue); }
+  .s-concession .sec-hdr { background: #1a507a; }
+  .s-accom      .sec-hdr { background: var(--green); }
+  .s-veh        .sec-hdr { background: var(--orange); }
+  .s-flights    .sec-hdr { background: #1a6655; }
+  .s-food       .sec-hdr { background: var(--purple); }
+  .s-other      .sec-hdr { background: var(--red); }
+  .s-summary    .sec-hdr { background: var(--brown2); }
+  .s-quote      .sec-hdr { background: #1a5c5c; }
+
+  .tab-bar { display: none; }
+
+  /* Print / share btn */
+  .action-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .action-btn { flex: 1; min-width: 120px; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .btn-print { background: var(--brown2); color: white; }
+  .btn-clear { background: #f0e8d8; color: var(--brown2); border: 1.5px solid var(--gold); }
+  .btn-quote { background: var(--gold); color: white; }
+
+  @media print {
+    .header { position: static; }
+    .action-bar, .add-row-btn, .pax-btn { display: none !important; }
+    .sec-body.hidden { display: block !important; }
+    .section { box-shadow: none; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STICKY HEADER -->
+<div class="header">
+  <div class="logo-wrap">
+    <img class="logo-img" src="https://shammahwonderssafaris.com/storage/generic_images/logo-colored.png"
+         onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'"
+         alt="Shammah Wonders Safari Logo">
+    <div id="logo-fallback" style="display:none;color:var(--lgold);font-size:14px;font-weight:bold;line-height:1.4;">
+      SHAMMAH WONDERS<br><span style="font-size:11px;font-weight:normal;color:var(--gold);">SAFARI</span>
+    </div>
+    <div class="logo-text">
+      <strong>QUOTATION CALCULATOR</strong>
+      Moshi, Tanzania &nbsp;|&nbsp; +255 755 901 197
+    </div>
+  </div>
+  <div class="total-badge">
+    <div class="tb-label">GRAND TOTAL</div>
+    <div class="tb-val" id="hdr-total">$ 0.00</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="action-bar">
+    <button class="action-btn btn-print" onclick="window.print()">Print / Save PDF</button>
+    <button class="action-btn btn-clear" onclick="clearAll()">Clear All</button>
+    <button class="action-btn btn-quote" onclick="scrollToQuote()">View Quote</button>
+  </div>
+
+  <!-- 1. CLIENT -->
+  <div class="section s-client">
+    <div class="sec-hdr" onclick="toggle(this)">
+      (1) CLIENT &amp; TRIP DETAILS <span class="chevron">&#9660;</span>
+    </div>
+    <div class="sec-body">
+      <div class="form-grid">
+        <div class="field"><label>Client Name</label><input type="text" id="clientName" placeholder="e.g. John &amp; Jane Smith" oninput="updateQuote()"></div>
+        <div class="field"><label>Nationality</label><input type="text" id="nationality" placeholder="e.g. German, American" oninput="updateQuote()"></div>
+        <div class="field full"><label>Parks / Destinations</label><input type="text" id="parks" placeholder="e.g. Serengeti, Ngorongoro, Tarangire" oninput="updateQuote()"></div>
+        <div class="field"><label>Number of Days / Nights</label><input type="number" id="days" value="1" min="1" oninput="recalcAll()"></div>
+        <div class="field"><label>Quote Date</label><input type="date" id="quoteDate"></div>
+        <div class="field"><label>Prepared By</label><input type="text" id="prepBy" placeholder="Agent name" oninput="updateQuote()"></div>
+        <div class="field full"><label>Notes / Special Requests</label><textarea id="notes" rows="2" placeholder="Dietary needs, special occasions, visa, insurance..." oninput="updateQuote()"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. PAX -->
+  <div class="section s-pax">
+    <div class="sec-hdr" onclick="toggle(this)">(2) GUESTS — PAX &amp; AGE DISTRIBUTION <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="pax-grid">
+        <div class="pax-box">
+          <div class="plabel">Adults <span>18 years &amp; above</span></div>
+          <div class="pax-ctrl">
+            <button class="pax-btn" onclick="changePax('adults',-1)">&#8722;</button>
+            <input class="pax-num" type="number" id="pax-adults" value="2" min="0" oninput="recalcAll()">
+            <button class="pax-btn" onclick="changePax('adults',1)">+</button>
+          </div>
+        </div>
+        <div class="pax-box">
+          <div class="plabel">Youth <span>12 – 17 years</span></div>
+          <div class="pax-ctrl">
+            <button class="pax-btn" onclick="changePax('youth',-1)">&#8722;</button>
+            <input class="pax-num" type="number" id="pax-youth" value="0" min="0" oninput="recalcAll()">
+            <button class="pax-btn" onclick="changePax('youth',1)">+</button>
+          </div>
+        </div>
+        <div class="pax-box">
+          <div class="plabel">Children <span>3 – 11 years</span></div>
+          <div class="pax-ctrl">
+            <button class="pax-btn" onclick="changePax('children',-1)">&#8722;</button>
+            <input class="pax-num" type="number" id="pax-children" value="0" min="0" oninput="recalcAll()">
+            <button class="pax-btn" onclick="changePax('children',1)">+</button>
+          </div>
+        </div>
+        <div class="pax-box">
+          <div class="plabel">Infants <span>0 – 2 years</span></div>
+          <div class="pax-ctrl">
+            <button class="pax-btn" onclick="changePax('infants',-1)">&#8722;</button>
+            <input class="pax-num" type="number" id="pax-infants" value="0" min="0" oninput="recalcAll()">
+            <button class="pax-btn" onclick="changePax('infants',1)">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="pax-total">Total Guests: <span id="total-pax-display">2</span></div>
+    </div>
+  </div>
+
+  <!-- 3. PARK FEES -->
+  <div class="section s-park">
+    <div class="sec-hdr" onclick="toggle(this)">
+      (3) PARK ENTRY FEES &mdash; charged per person per day (valid 24 hrs, even if staying inside park)
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="sec-body">
+      <div style="background:#e4eef8;border-left:3px solid var(--blue);padding:8px 12px;border-radius:0 6px 6px 0;font-size:11px;color:var(--blue);margin-bottom:12px;">
+        <strong>Park Entry Fee</strong> — paid per person, per day. Counts as one day regardless of entry time. Applies every day the guest is inside the park, including overnight stays.
+      </div>
+      <div class="table-scroll">
+        <table id="park-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:130px">Park / Reserve</th>
+            <th style="text-align:left;min-width:100px">Fee Type</th>
+            <th>Adult<br>$/p/day</th>
+            <th>Youth<br>$/p/day</th>
+            <th>Child<br>$/p/day</th>
+            <th>Infant<br>$/p/day</th>
+            <th>Days</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="park-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="7" style="text-align:right">TOTAL PARK ENTRY FEES</td>
+            <td id="park-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('park')">+ Add Park</button>
+    </div>
+  </div>
+
+  <!-- 3b. CONCESSION FEES -->
+  <div class="section s-concession">
+    <div class="sec-hdr" onclick="toggle(this)">
+      (3b) CONCESSION FEES &mdash; charged per person per night (only when staying inside the park)
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="sec-body">
+      <div style="background:#ddeef8;border-left:3px solid #1a507a;padding:8px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#1a507a;margin-bottom:12px;">
+        <strong>Concession Fee</strong> — paid per person, per night. Only applies when guests sleep <em>inside</em> the park/reserve (at a lodge or camp within the park boundary). Not charged for day visits or stays outside the park.
+      </div>
+      <div class="table-scroll">
+        <table id="concession-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:130px">Park / Reserve</th>
+            <th style="text-align:left;min-width:100px">Lodge / Camp</th>
+            <th>Adult<br>$/p/night</th>
+            <th>Youth<br>$/p/night</th>
+            <th>Child<br>$/p/night</th>
+            <th>Infant<br>$/p/night</th>
+            <th>Nights<br>inside park</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="concession-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="7" style="text-align:right">TOTAL CONCESSION FEES</td>
+            <td id="concession-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('concession')">+ Add Concession</button>
+    </div>
+  </div>
+
+  <!-- 4. ACCOMMODATION -->
+  <div class="section s-accom">
+    <div class="sec-hdr" onclick="toggle(this)">(4) ACCOMMODATION — price per person per night by age <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="table-scroll">
+        <table id="accom-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:130px">Lodge / Camp Name</th>
+            <th style="text-align:left;min-width:100px">Location / Park</th>
+            <th>Adult<br>$/p/night</th>
+            <th>Youth<br>$/p/night</th>
+            <th>Child<br>$/p/night</th>
+            <th>Infant<br>$/p/night</th>
+            <th>Nights</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="accom-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="7" style="text-align:right">TOTAL ACCOMMODATION</td>
+            <td id="accom-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('accom')">+ Add Lodge / Camp</button>
+    </div>
+  </div>
+
+  <!-- 5. VEHICLE -->
+  <div class="section s-veh">
+    <div class="sec-hdr" onclick="toggle(this)">(5) SAFARI VEHICLE &amp; TRANSPORT <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="table-scroll">
+        <table id="veh-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:150px">Item / Vehicle Type</th>
+            <th style="text-align:left;min-width:110px">Description / Route</th>
+            <th>Unit Price ($)</th>
+            <th>Qty / Days</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="veh-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="4" style="text-align:right">TOTAL VEHICLE &amp; TRANSPORT</td>
+            <td id="veh-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('veh')">+ Add Item</button>
+    </div>
+  </div>
+
+  <!-- 6. FLIGHTS -->
+  <div class="section s-flights">
+    <div class="sec-hdr" onclick="toggle(this)">
+      (6) FLIGHTS &mdash; international, domestic &amp; charter (per person pricing)
+      <span class="chevron">&#9660;</span>
+    </div>
+    <div class="sec-body">
+      <div style="background:#d4ede8;border-left:3px solid #1a6655;padding:8px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#1a6655;margin-bottom:12px;">
+        <strong>Flight Pricing</strong> — enter the price per adult. Youth, child and infant fares are optional discounts you set yourself. Leave blank to charge the same as adult fare. Select One-Way or Return for each leg. Total auto-calculates per pax type.
+      </div>
+      <div class="table-scroll">
+        <table id="flights-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:140px">Route<br><span style="font-weight:normal;font-size:9px">e.g. Arusha &rarr; Serengeti</span></th>
+            <th style="text-align:left;min-width:80px">Airline /<br>Operator</th>
+            <th>Type</th>
+            <th>Adult<br>$/person</th>
+            <th>Youth<br>$/person</th>
+            <th>Child<br>$/person</th>
+            <th>Infant<br>$/person</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="flights-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="7" style="text-align:right">TOTAL FLIGHTS</td>
+            <td id="flights-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('flights')">+ Add Flight</button>
+    </div>
+  </div>
+
+  <!-- 7. FOOD & DRINKS -->
+  <div class="section s-food">
+    <div class="sec-hdr" onclick="toggle(this)">(7) FOOD &amp; DRINKS — price per person per day by age <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="table-scroll">
+        <table id="food-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:130px">Meal / Item</th>
+            <th style="text-align:left;min-width:100px">Description</th>
+            <th>Adult<br>$/p/day</th>
+            <th>Youth<br>$/p/day</th>
+            <th>Child<br>$/p/day</th>
+            <th>Infant<br>$/p/day</th>
+            <th>Days</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="food-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="7" style="text-align:right">TOTAL FOOD &amp; DRINKS</td>
+            <td id="food-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('food')">+ Add Item</button>
+    </div>
+  </div>
+
+  <!-- 7. OTHER -->
+  <div class="section s-other">
+    <div class="sec-hdr" onclick="toggle(this)">(8) OTHER SERVICES — guide, activities, extras <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="table-scroll">
+        <table id="other-table">
+          <thead><tr>
+            <th style="text-align:left;min-width:150px">Service / Item</th>
+            <th style="text-align:left;min-width:100px">Notes / Description</th>
+            <th>Unit Price ($)</th>
+            <th>Quantity</th>
+            <th>TOTAL</th>
+          </tr></thead>
+          <tbody id="other-tbody"></tbody>
+          <tfoot><tr class="section-total-row">
+            <td colspan="4" style="text-align:right">TOTAL OTHER SERVICES</td>
+            <td id="other-total" style="text-align:right">$ 0.00</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow('other')">+ Add Item</button>
+    </div>
+  </div>
+
+  <!-- 8. SUMMARY -->
+  <div class="section s-summary">
+    <div class="sec-hdr" onclick="toggle(this)">(9) PRICE SUMMARY <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="summary-box">
+        <div class="sum-row"><span class="sl">Park Entry Fees</span><span class="sv" id="sum-park">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Concession Fees</span><span class="sv" id="sum-concession">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Accommodation</span><span class="sv" id="sum-accom">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Vehicle &amp; Transport</span><span class="sv" id="sum-veh">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Flights</span><span class="sv" id="sum-flights">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Food &amp; Drinks</span><span class="sv" id="sum-food">$ 0.00</span></div>
+        <div class="sum-row"><span class="sl">Other Services</span><span class="sv" id="sum-other">$ 0.00</span></div>
+        <div class="sum-row" style="border-top:2px solid var(--gold);margin-top:4px;padding-top:12px;">
+          <span class="sl" style="font-weight:bold">Subtotal</span>
+          <span class="sv" id="sum-sub" style="font-size:16px">$ 0.00</span>
+        </div>
+        <div class="comm-row">
+          <span class="sl">Commission / Markup</span>
+          <input class="comm-input" type="number" id="commission" value="10" min="0" max="100" oninput="recalcAll()"> %
+          <span class="sv" id="sum-comm">$ 0.00</span>
+        </div>
+        <div class="sum-row grand">
+          <span class="sl">GRAND TOTAL</span>
+          <span class="sv" id="sum-grand">$ 0.00</span>
+        </div>
+        <div class="pp-grid">
+          <div class="pp-card"><div class="ppl">Per Person</div><div class="ppv" id="pp-total">$ 0.00</div></div>
+          <div class="pp-card"><div class="ppl">Per Person / Day</div><div class="ppv" id="ppd-total">$ 0.00</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. QUOTE PREVIEW -->
+  <div class="section s-quote" id="quote-section">
+    <div class="sec-hdr" onclick="toggle(this)">(10) AUTO QUOTE PREVIEW <span class="chevron">&#9660;</span></div>
+    <div class="sec-body">
+      <div class="quote-preview" id="quote-preview-box">
+        <div class="qdate" id="q-date"></div>
+        <div class="qdear" id="q-dear"></div>
+        <p id="q-intro"></p>
+        <div class="qguests" id="q-guests"></div>
+        <p style="margin:10px 0;font-size:12px;color:#444">Please find our detailed cost breakdown below:</p>
+        <div class="qcosts" id="q-costs"></div>
+        <p id="q-closing" style="margin-top:12px;font-size:12px;color:#444"></p>
+        <div class="qsig" id="q-sig"></div>
+        <p class="qfooter">This quotation is valid for 30 days. All prices in USD. Park fees subject to change by authorities.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const state = {
+  park:  [],
+  accom: [],
+  veh:   [],
+  food:  [],
+  other: []
+};
+
+// ── INITIAL DATA ───────────────────────────────────────────────────────────
+const defaults = {
+  park: [
+    {name:'Serengeti NP', type:'Entry Fee', adult:'', youth:'', child:'', infant:''},
+    {name:'Ngorongoro Crater', type:'Entry Fee', adult:'', youth:'', child:'', infant:''},
+    {name:'Tarangire NP', type:'Entry Fee', adult:'', youth:'', child:'', infant:''},
+    {name:'Lake Manyara NP', type:'Entry Fee', adult:'', youth:'', child:'', infant:''},
+  ],
+  concession: [
+    {name:'Serengeti NP', lodge:'', adult:'', youth:'', child:'', infant:'', nights:''},
+    {name:'Ngorongoro Crater', lodge:'', adult:'', youth:'', child:'', infant:'', nights:''},
+    {name:'Tarangire NP', lodge:'', adult:'', youth:'', child:'', infant:'', nights:''},
+    {name:'', lodge:'', adult:'', youth:'', child:'', infant:'', nights:''},
+  ],
+  accom: [
+    {name:'', loc:'', adult:'', youth:'', child:'', infant:'', nights:''},
+    {name:'', loc:'', adult:'', youth:'', child:'', infant:'', nights:''},
+    {name:'', loc:'', adult:'', youth:'', child:'', infant:'', nights:''},
+  ],
+  veh: [
+    {name:'4x4 Safari Jeep / Land Cruiser', desc:'', price:'', qty:''},
+    {name:'Airport Transfer - Arrival', desc:'', price:'', qty:''},
+    {name:'Airport Transfer - Departure', desc:'', price:'', qty:''},
+  ],
+  flights: [
+    {route:'', airline:'', type:'one-way', adult:'', youth:'', child:'', infant:''},
+    {route:'', airline:'', type:'one-way', adult:'', youth:'', child:'', infant:''},
+    {route:'', airline:'', type:'one-way', adult:'', youth:'', child:'', infant:''},
+  ],
+  food: [
+    {name:'Breakfast', desc:'', adult:'', youth:'', child:'', infant:''},
+    {name:'Lunch / Packed Lunch', desc:'', adult:'', youth:'', child:'', infant:''},
+    {name:'Dinner', desc:'', adult:'', youth:'', child:'', infant:''},
+    {name:'Drinks Package', desc:'', adult:'', youth:'', child:'', infant:''},
+  ],
+  other: [
+    {name:'Professional Safari Guide', desc:'per day', price:'', qty:''},
+    {name:'Ranger / Tracker Fee', desc:'per day', price:'', qty:''},
+    {name:'Hot Air Balloon Safari', desc:'per person', price:'', qty:''},
+    {name:'Gratuities / Tips', desc:'lump sum', price:'', qty:''},
+    {name:'Travel Insurance', desc:'per person', price:'', qty:''},
+  ]
+};
+
+function f(v){ return '$ ' + (parseFloat(v)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function n(v){ return parseFloat(v)||0; }
+function getPax(){ return { a: n(document.getElementById('pax-adults').value), y: n(document.getElementById('pax-youth').value), c: n(document.getElementById('pax-children').value), i: n(document.getElementById('pax-infants').value) }; }
+function totalPax(){ const p=getPax(); return p.a+p.y+p.c+p.i; }
+function getDays(){ return Math.max(1, n(document.getElementById('days').value)); }
+
+// ── SECTION TOGGLE ─────────────────────────────────────────────────────────
+function toggle(hdr){
+  hdr.classList.toggle('collapsed');
+  hdr.nextElementSibling.classList.toggle('hidden');
+}
+
+// ── PAX BUTTONS ────────────────────────────────────────────────────────────
+function changePax(id, delta){
+  const el = document.getElementById('pax-'+id);
+  el.value = Math.max(0, n(el.value)+delta);
+  recalcAll();
+}
+
+// ── ROW BUILDERS ───────────────────────────────────────────────────────────
+function buildParkRow(d, idx){
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.name||''}" placeholder="Park name" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.type||''}" placeholder="Fee type" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.adult||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.youth||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.child||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.infant||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td class="total-cell" id="park-days-${idx}">${getDays()}</td>
+    <td class="total-cell" id="park-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+function buildConcessionRow(d, idx){
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.name||''}" placeholder="Park / Reserve" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.lodge||''}" placeholder="Lodge / Camp name" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.adult||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.youth||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.child||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.infant||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.nights||''}" placeholder="0" min="0" style="width:52px;text-align:center" oninput="recalcAll()"></td>
+    <td class="total-cell" id="concession-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+function buildAccomRow(d, idx){
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.name||''}" placeholder="Lodge / Camp name" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.loc||''}" placeholder="Location" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.adult||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.youth||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.child||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.infant||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.nights||''}" placeholder="0" min="0" style="width:52px;text-align:center" oninput="recalcAll()"></td>
+    <td class="total-cell" id="accom-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+function buildSimpleRow(d, idx, section){
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.name||''}" placeholder="Item" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.desc||''}" placeholder="Description" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.price||''}" placeholder="0.00" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.qty||''}" placeholder="0" min="0" style="width:60px;text-align:center" oninput="recalcAll()"></td>
+    <td class="total-cell" id="${section}-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+function buildFoodRow(d, idx){
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.name||''}" placeholder="Meal item" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.desc||''}" placeholder="Description" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.adult||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.youth||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.child||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.infant||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td class="total-cell" id="food-days-${idx}">${getDays()}</td>
+    <td class="total-cell" id="food-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+function buildFlightRow(d, idx){
+  const typeOpts = ['one-way','return'].map(t =>
+    `<option value="${t}" ${(d.type||'one-way')===t?'selected':''}>${t==='one-way'?'One-Way':'Return (x2)'}</option>`
+  ).join('');
+  return `<tr>
+    <td><input class="name-input" type="text" value="${d.route||''}" placeholder="e.g. Arusha to Serengeti" oninput="recalcAll()"></td>
+    <td><input class="name-input" type="text" value="${d.airline||''}" placeholder="Airline / charter" oninput="recalcAll()"></td>
+    <td style="min-width:100px"><select onchange="recalcAll()" style="width:100%;padding:5px 4px;border:1.5px solid #ddd;border-radius:5px;font-size:11px;background:var(--input-bg);color:#000">${typeOpts}</select></td>
+    <td><input type="number" value="${d.adult||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.youth||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.child||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td><input type="number" value="${d.infant||''}" placeholder="0" min="0" oninput="recalcAll()"></td>
+    <td class="total-cell" id="flights-row-total-${idx}">$ 0.00</td>
+  </tr>`;
+}
+
+function renderTable(section){
+  const tbody = document.getElementById(section+'-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = defaults[section].map((d,i) => {
+    if(section==='park') return buildParkRow(d,i);
+    if(section==='concession') return buildConcessionRow(d,i);
+    if(section==='accom') return buildAccomRow(d,i);
+    if(section==='veh' || section==='other') return buildSimpleRow(d,i,section);
+    if(section==='flights') return buildFlightRow(d,i);
+    if(section==='food') return buildFoodRow(d,i);
+  }).join('');
+}
+
+function addRow(section){
+  const tbody = document.getElementById(section+'-tbody');
+  const idx = tbody.rows.length;
+  let html = '';
+  if(section==='park') html = buildParkRow({},idx);
+  else if(section==='concession') html = buildConcessionRow({},idx);
+  else if(section==='accom') html = buildAccomRow({},idx);
+  else if(section==='veh'||section==='other') html = buildSimpleRow({},idx,section);
+  else if(section==='flights') html = buildFlightRow({},idx);
+  else if(section==='food') html = buildFoodRow({},idx);
+  tbody.insertAdjacentHTML('beforeend', html);
+  defaults[section].push({});
+  recalcAll();
+}
+
+// ── CALCULATIONS ───────────────────────────────────────────────────────────
+function calcParkTotal(){
+  const p = getPax(), days = getDays();
+  let total = 0;
+  const tbody = document.getElementById('park-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const cells = row.querySelectorAll('input[type=number]');
+    const adult=n(cells[0]?.value), youth=n(cells[1]?.value), child=n(cells[2]?.value), infant=n(cells[3]?.value);
+    const rowTotal = (p.a*adult + p.y*youth + p.c*child + p.i*infant) * days;
+    total += rowTotal;
+    const dayEl = document.getElementById('park-days-'+i);
+    const totEl = document.getElementById('park-row-total-'+i);
+    if(dayEl) dayEl.textContent = days;
+    if(totEl) totEl.textContent = f(rowTotal);
+  });
+  return total;
+}
+function calcConcessionTotal(){
+  const p = getPax();
+  let total = 0;
+  const tbody = document.getElementById('concession-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const cells = row.querySelectorAll('input[type=number]');
+    const adult=n(cells[0]?.value), youth=n(cells[1]?.value), child=n(cells[2]?.value), infant=n(cells[3]?.value), nights=n(cells[4]?.value);
+    const rowTotal = (p.a*adult + p.y*youth + p.c*child + p.i*infant) * nights;
+    total += rowTotal;
+    const el = document.getElementById('concession-row-total-'+i);
+    if(el) el.textContent = f(rowTotal);
+  });
+  return total;
+}
+function calcAccomTotal(){
+  const p = getPax();
+  let total = 0;
+  const tbody = document.getElementById('accom-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const cells = row.querySelectorAll('input[type=number]');
+    const adult=n(cells[0]?.value), youth=n(cells[1]?.value), child=n(cells[2]?.value), infant=n(cells[3]?.value), nights=n(cells[4]?.value);
+    const rowTotal = (p.a*adult + p.y*youth + p.c*child + p.i*infant) * nights;
+    total += rowTotal;
+    const el = document.getElementById('accom-row-total-'+i);
+    if(el) el.textContent = f(rowTotal);
+  });
+  return total;
+}
+function calcSimpleTotal(section){
+  let total = 0;
+  const tbody = document.getElementById(section+'-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const cells = row.querySelectorAll('input[type=number]');
+    const price=n(cells[0]?.value), qty=n(cells[1]?.value);
+    const rowTotal = price * qty;
+    total += rowTotal;
+    const el = document.getElementById(section+'-row-total-'+i);
+    if(el) el.textContent = f(rowTotal);
+  });
+  return total;
+}
+function calcFoodTotal(){
+  const p = getPax(), days = getDays();
+  let total = 0;
+  const tbody = document.getElementById('food-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const cells = row.querySelectorAll('input[type=number]');
+    const adult=n(cells[0]?.value), youth=n(cells[1]?.value), child=n(cells[2]?.value), infant=n(cells[3]?.value);
+    const rowTotal = (p.a*adult + p.y*youth + p.c*child + p.i*infant) * days;
+    total += rowTotal;
+    const dayEl = document.getElementById('food-days-'+i);
+    const totEl = document.getElementById('food-row-total-'+i);
+    if(dayEl) dayEl.textContent = days;
+    if(totEl) totEl.textContent = f(rowTotal);
+  });
+  return total;
+}
+function calcFlightsTotal(){
+  const p = getPax();
+  let total = 0;
+  const tbody = document.getElementById('flights-tbody');
+  if(!tbody) return 0;
+  Array.from(tbody.rows).forEach((row, i) => {
+    const sel    = row.querySelector('select');
+    const mult   = sel && sel.value === 'return' ? 2 : 1;
+    const numInp = row.querySelectorAll('input[type=number]');
+    const adultP  = n(numInp[0]?.value);
+    const youthP  = numInp[1]?.value !== '' ? n(numInp[1].value) : adultP;
+    const childP  = numInp[2]?.value !== '' ? n(numInp[2].value) : adultP;
+    const infantP = numInp[3]?.value !== '' ? n(numInp[3].value) : adultP;
+    const rowTotal = (p.a*adultP + p.y*youthP + p.c*childP + p.i*infantP) * mult;
+    total += rowTotal;
+    const el = document.getElementById('flights-row-total-'+i);
+    if(el) el.textContent = f(rowTotal);
+  });
+  return total;
+}
+
+function recalcAll(){
+  // Update pax display
+  const tp = totalPax();
+  document.getElementById('total-pax-display').textContent = tp;
+
+  const parkT       = calcParkTotal();
+  const concessionT = calcConcessionTotal();
+  const accomT      = calcAccomTotal();
+  const vehT        = calcSimpleTotal('veh');
+  const flightsT    = calcFlightsTotal();
+  const foodT       = calcFoodTotal();
+  const otherT      = calcSimpleTotal('other');
+  const sub    = parkT + concessionT + accomT + vehT + flightsT + foodT + otherT;
+  const commPct = n(document.getElementById('commission').value)/100;
+  const comm   = sub * commPct;
+  const grand  = sub + comm;
+  const days   = getDays();
+
+  // Section totals
+  document.getElementById('park-total').textContent        = f(parkT);
+  document.getElementById('concession-total').textContent  = f(concessionT);
+  document.getElementById('accom-total').textContent       = f(accomT);
+  document.getElementById('veh-total').textContent         = f(vehT);
+  document.getElementById('flights-total').textContent     = f(flightsT);
+  document.getElementById('food-total').textContent        = f(foodT);
+  document.getElementById('other-total').textContent       = f(otherT);
+
+  // Summary
+  document.getElementById('sum-park').textContent        = f(parkT);
+  document.getElementById('sum-concession').textContent  = f(concessionT);
+  document.getElementById('sum-accom').textContent       = f(accomT);
+  document.getElementById('sum-veh').textContent         = f(vehT);
+  document.getElementById('sum-flights').textContent     = f(flightsT);
+  document.getElementById('sum-food').textContent        = f(foodT);
+  document.getElementById('sum-other').textContent       = f(otherT);
+  document.getElementById('sum-sub').textContent         = f(sub);
+  document.getElementById('sum-comm').textContent        = f(comm);
+  document.getElementById('sum-grand').textContent       = f(grand);
+  document.getElementById('hdr-total').textContent       = f(grand);
+
+  const ppv  = tp > 0 ? grand/tp : 0;
+  const ppdv = (tp > 0 && days > 0) ? grand/(tp*days) : 0;
+  document.getElementById('pp-total').textContent  = f(ppv);
+  document.getElementById('ppd-total').textContent = f(ppdv);
+
+  updateQuote(grand, parkT, concessionT, accomT, vehT, flightsT, foodT, otherT, comm, commPct, tp, ppv, ppdv);
+}
+
+// ── QUOTE PREVIEW ──────────────────────────────────────────────────────────
+function updateQuote(grand, parkT, concessionT, accomT, vehT, flightsT, foodT, otherT, comm, commPct, tp, ppv, ppdv){
+  const name   = document.getElementById('clientName').value || '[Client Name]';
+  const nat    = document.getElementById('nationality').value;
+  const parks  = document.getElementById('parks').value || '[Destination]';
+  const days   = getDays();
+  const prepBy = document.getElementById('prepBy').value || 'Shammah Wonders Safari';
+  const notes  = document.getElementById('notes').value;
+  const p      = getPax();
+
+  const dateStr = document.getElementById('quoteDate').value
+    ? new Date(document.getElementById('quoteDate').value).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})
+    : new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('q-date').textContent = 'Date: ' + dateStr + '   |   Prepared by: ' + prepBy;
+  document.getElementById('q-dear').textContent = 'Dear ' + name + ',';
+  document.getElementById('q-intro').textContent =
+    `Thank you for choosing Shammah Wonders Safari for your adventure. Please find below our detailed quotation for your ${days}-day safari to ${parks}. This itinerary has been carefully crafted to provide you with an unforgettable East African experience.`;
+
+  let guestParts = [];
+  if(p.a>0) guestParts.push(`${p.a} Adult${p.a>1?'s':''}`);
+  if(p.y>0) guestParts.push(`${p.y} Youth`);
+  if(p.c>0) guestParts.push(`${p.c} Child${p.c!==1?'ren':''}`);
+  if(p.i>0) guestParts.push(`${p.i} Infant${p.i>1?'s':''}`);
+  document.getElementById('q-guests').textContent =
+    `Guests: ${tp||'—'} total  |  ${guestParts.join('  +  ')||'—'}` + (nat ? `  |  Nationality: ${nat}` : '');
+
+  const costs = [
+    ['Park Entry Fees', parkT],
+    ['Concession Fees', concessionT],
+    ['Accommodation', accomT],
+    ['Vehicle & Transport', vehT],
+    ['Flights', flightsT],
+    ['Food & Drinks', foodT],
+    ['Other Services', otherT],
+    [`Commission (${((commPct||0)*100).toFixed(1)}%)`, comm],
+  ];
+  let costsHtml = costs.filter(([,v])=>v>0).map(([l,v])=>
+    `<div class="qcost-row"><span>${l}</span><span>${f(v)}</span></div>`
+  ).join('');
+  costsHtml += `<div class="qcost-row qtotal"><span>GRAND TOTAL</span><span>${f(grand||0)}</span></div>`;
+  if(tp>0) costsHtml += `<div class="qcost-row" style="color:#666;font-size:12px"><span>Per person</span><span>${f(ppv||0)}</span></div>`;
+  document.getElementById('q-costs').innerHTML = costsHtml;
+
+  document.getElementById('q-closing').textContent =
+    `We look forward to welcoming you to the wild landscapes of Tanzania. Please do not hesitate to contact us for any amendments or further information.` +
+    (notes ? ` Special notes: ${notes}` : '');
+
+  document.getElementById('q-sig').textContent = 'Shammah Wonders Safari  |  Moshi, Tanzania  |  +255 755 901 197  |  www.shammahwonderssafaris.com';
+}
+
+function scrollToQuote(){
+  document.getElementById('quote-section').scrollIntoView({behavior:'smooth'});
+  const hdr = document.querySelector('#quote-section .sec-hdr');
+  if(hdr.classList.contains('collapsed')){ toggle(hdr); }
+}
+
+function clearAll(){
+  if(!confirm('Clear all entered data?')) return;
+  ['clientName','nationality','parks','notes','prepBy'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('days').value = 1;
+  ['pax-adults','pax-youth','pax-children','pax-infants'].forEach((id,i)=>{ document.getElementById(id).value = i===0?2:0; });
+  document.getElementById('commission').value = 10;
+  ['park','concession','accom','veh','flights','food','other'].forEach(s => {
+    const tbody = document.getElementById(s+'-tbody');
+    if(tbody) tbody.querySelectorAll('input').forEach(inp=>{ if(inp.type!=='text') inp.value=''; else { /* keep labels */ } });
+  });
+  recalcAll();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.onload = function(){
+  ['park','concession','accom','veh','flights','food','other'].forEach(renderTable);
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('quoteDate').value = today;
+  recalcAll();
+};
+</script>
+</body>
+</html>
